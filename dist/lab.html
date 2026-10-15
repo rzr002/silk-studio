@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#efede7">
+  <meta name="description" content="可编辑织物结构、交互形变与针织拓扑的实验工作台。">
+  <title>SILK · 物理工作台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%232d302e'/%3E%3Cpath d='M16 21c0-10 32-10 32 0s-32 12-32 22 32 10 32 0' fill='none' stroke='%23e8e1d4' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="icon-grab" viewBox="0 0 24 24"><path d="M8 12V7a2 2 0 0 1 4 0v5-8a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v8c0 5-3 7-7 7-2 0-4-1-6-4l-3-4a2 2 0 0 1 3-2l2 2"/></symbol>
+    <symbol id="icon-pin" viewBox="0 0 24 24"><path d="m8 3 8 0-1 6 4 4H5l4-4-1-6ZM12 13v8"/></symbol>
+    <symbol id="icon-cut" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="m8.5 7.5 12 12m-12-3 12-12M12 12l-2 2"/></symbol>
+    <symbol id="icon-sew" viewBox="0 0 24 24"><path d="m4 20 11-14c5-6 8-3 4 2L4 20Z"/><path d="m16 6 3-3M18 10c5 5 0 10-5 7"/></symbol>
+    <symbol id="icon-region" viewBox="0 0 24 24"><path d="M5 4h3m3 0h3m3 0h2v3M20 10v3m0 3v4h-3m-3 0h-3m-3 0H4v-3m0-3v-3m0-3V4h1"/><path d="m9 14 6-6 2 2-6 6-3 1 1-3Z"/></symbol>
+    <symbol id="icon-orbit" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-32 12 12)"/><circle cx="12" cy="12" r="3"/><path d="m19 4 2 3-4 1"/></symbol>
+    <symbol id="icon-undo" viewBox="0 0 24 24"><path d="M8 6 3 11l5 5M4 11h10a6 6 0 0 1 0 12" transform="translate(0 -3)"/></symbol>
+    <symbol id="icon-redo" viewBox="0 0 24 24"><path d="m16 6 5 5-5 5m4-5H10a6 6 0 0 0 0 12" transform="translate(0 -3)"/></symbol>
+    <symbol id="icon-reset" viewBox="0 0 24 24"><path d="M4 9a9 9 0 1 1 0 7M4 3v6h6"/></symbol>
+    <symbol id="icon-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></symbol>
+    <symbol id="icon-step" viewBox="0 0 24 24"><path d="m5 5 10 7-10 7V5ZM19 5v14"/></symbol>
+    <symbol id="icon-save" viewBox="0 0 24 24"><path d="M4 3h13l3 3v15H4V3ZM8 3v6h8V3M8 21v-7h8v7"/></symbol>
+    <symbol id="icon-file" viewBox="0 0 24 24"><path d="M4 20V7h6l2 3h9l-3 10H4ZM4 7V4h7l3 3h5v3"/></symbol>
+    <symbol id="icon-export" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M4 15v6h16v-6"/></symbol>
+    <symbol id="icon-camera" viewBox="0 0 24 24"><path d="M3 7h5l2-3h4l2 3h5v14H3V7Z"/><circle cx="12" cy="13" r="4"/></symbol>
+  </defs></svg>
+
+  <header class="topbar">
+    <a href="./" class="brand" aria-label="SILK 物理工作台"><span class="brand-word">SILK</span><span class="brand-divider"></span><span class="brand-title">物理工作台</span></a>
+    <span class="prototype-label">实验原型 <span>0.3</span></span>
+    <div class="document-actions" role="group" aria-label="实验文件">
+      <button id="save-button" class="quiet-button" title="保存实验至当前浏览器"><svg><use href="#icon-save"/></svg><span>保存</span></button>
+      <button id="load-button" class="quiet-button" title="打开实验 JSON 文件"><svg><use href="#icon-file"/></svg><span>打开</span></button>
+      <input id="file-input" type="file" accept=".json,application/json" hidden>
+      <button id="export-button" class="outline-button"><svg><use href="#icon-export"/></svg><span>导出实验</span></button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <div class="workspace-bar">
+      <nav id="scene-tabs" class="scene-tabs" aria-label="实验场景">
+        <button data-scene="patch" aria-pressed="false"><span class="tab-index">01</span>组织展开</button>
+        <button data-scene="knit" aria-pressed="false"><span class="tab-index">02</span>线圈细节</button>
+        <button data-scene="stocking" class="active" aria-pressed="true"><span class="tab-index">03</span>丝袜试穿</button>
+        <button data-scene="lab" aria-pressed="false"><span class="tab-index">04</span>材料试验</button>
+      </nav>
+      <span class="solver-indicator"><i></i> <span id="engine-label">CPU / XPBD</span></span>
+    </div>
+
+    <div class="lab-layout">
+      <aside class="tool-rail" aria-label="结构编辑工具">
+        <div id="tool-buttons" class="tool-buttons" role="group" aria-label="交互工具">
+          <button data-tool="grab" class="tool-button active" aria-pressed="true" title="抓取：拖动织物上的一点"><svg><use href="#icon-grab"/></svg><span>抓取</span></button>
+          <button data-tool="shape" class="tool-button" aria-pressed="false" title="改版：拖动修改自然轮廓，释放后保留"><svg><use href="#icon-region"/></svg><span>改版</span></button>
+          <button data-tool="pin" class="tool-button" aria-pressed="false" title="固定：点击添加或移除固定点"><svg><use href="#icon-pin"/></svg><span>固定</span></button>
+          <button data-tool="cut" class="tool-button" aria-pressed="false" title="开缝：沿网格边近似切线，分离边界并保留材料"><svg><use href="#icon-cut"/></svg><span>开缝</span></button>
+          <button data-tool="sew" class="tool-button" aria-pressed="false" title="缝合：依次拖选两段边界，或缝合最近切口"><svg><use href="#icon-sew"/></svg><span>缝合</span></button>
+          <button data-tool="region" class="tool-button" aria-pressed="false" title="区域：点选已有组织区或拖出新区域"><svg><use href="#icon-region"/></svg><span>区域</span></button>
+          <button data-tool="orbit" class="tool-button" aria-pressed="false" title="视角：拖动旋转场景"><svg><use href="#icon-orbit"/></svg><span>视角</span></button>
+        </div>
+        <div class="history-buttons" role="group" aria-label="编辑历史">
+          <button id="undo-button" class="rail-button" title="撤销 Ctrl / ⌘ Z" aria-label="撤销"><svg><use href="#icon-undo"/></svg></button>
+          <button id="redo-button" class="rail-button" title="重做 Ctrl / ⌘ Shift Z" aria-label="重做"><svg><use href="#icon-redo"/></svg></button>
+        </div>
+      </aside>
+
+      <section class="stage" aria-label="三维物理实验场景">
+        <div id="viewport" tabindex="0" role="region" aria-label="可交互的三维织物。拖动抓取；右键或 Alt 加拖动旋转；滚轮缩放。">
+          <span id="loading" class="loading"><span class="loading-line"></span>正在建立物理场景…</span>
+        </div>
+        <div class="stage-caption"><span class="scene-marker"></span><span id="scene-name">丝袜试穿</span><span class="mode-badge" id="mode-badge">抓取</span></div>
+        <p id="view-note" class="view-note">正在建立试穿视图…</p>
+        <div class="view-options" role="group" aria-label="显示模式">
+          <label><input id="wireframe" type="checkbox"><span>网格</span></label>
+          <label><input id="strain-view" type="checkbox"><span>应变</span></label>
+          <button id="snapshot-button" class="small-icon-button" title="导出当前视图 PNG" aria-label="导出当前视图 PNG"><svg><use href="#icon-camera"/></svg></button>
+        </div>
+        <div class="stage-bottom">
+          <div class="transport" role="group" aria-label="物理求解控制">
+            <button id="play-button" class="play-button" aria-pressed="true" title="运行或暂停 · 空格"><svg><use href="#icon-play"/></svg><span>暂停</span></button>
+            <button id="step-button" class="transport-button" title="向前求解一帧" aria-label="向前求解一帧"><svg><use href="#icon-step"/></svg></button>
+            <span class="transport-divider"></span>
+            <button id="reset-button" class="transport-button" title="重置当前实验" aria-label="重置当前实验"><svg><use href="#icon-reset"/></svg></button>
+          </div>
+          <span id="solver-state" class="solver-state">等待求解</span>
+        </div>
+      </section>
+
+      <aside class="inspector" aria-label="作品结构、材料与物理检查器">
+        <div class="inspector-heading"><h1>检查器</h1><span class="panel-tag">INSPECTOR</span></div>
+        <section class="inspector-section selection-section">
+          <div class="design-identity"><span>作品 <output id="design-id">—</output></span><span>版本 <output id="design-revision">—</output></span></div>
+          <div class="section-heading"><h2>组织区域</h2><span id="active-region" class="source-badge">—</span></div>
+          <p id="selection-text" class="selection-text">点击丝袜选择编辑位置</p>
+          <div class="selection-actions"><button id="edit-region-button" class="full-button">编辑所选组织区</button><button id="whole-view-button" class="quiet-outline-button">返回试穿</button></div>
+          <p class="control-note">展开、线圈与试穿共用同一件作品。材料试验单独保存。</p>
+        </section>
+        <section id="knit-controls" class="inspector-section">
+          <div class="section-heading"><h2>针织组织</h2><span class="source-badge experimental">实验映射</span></div>
+          <label class="select-label" for="stitch-type">选择组织，再点击针目</label>
+          <select id="stitch-type"><option value="knit">成圈 · Knit</option><option value="tuck">集圈 · Tuck</option><option value="miss">浮线 · Miss</option><option value="eyelet">孔眼 · Eyelet</option></select>
+          <p id="knit-status" class="control-note">等待组织数据</p>
+          <div class="paired-buttons seam-actions"><button id="sew-latest" class="outline-button">缝合最近切口</button><button id="unstitch-button" class="quiet-outline-button">拆最近缝线</button></div>
+        </section>
+        <details id="dimension-controls" class="panel-group" open>
+          <summary><span>自然尺寸</span><span class="summary-detail">cm <i></i></span></summary>
+          <div class="panel-content dimension-grid">
+            <div class="dimension-control"><label for="dimension-foot-length">足长<output data-dimension-output="footLength" for="dimension-foot-length">24.0</output></label><input id="dimension-foot-length" data-dimension="footLength" type="range" min="18" max="34" step="0.1" value="24"></div>
+            <div class="dimension-control"><label for="dimension-foot-width">足宽<output data-dimension-output="footWidth" for="dimension-foot-width">8.4</output></label><input id="dimension-foot-width" data-dimension="footWidth" type="range" min="6" max="14" step="0.1" value="8.4"></div>
+            <div class="dimension-control"><label for="dimension-heel-depth">足跟深<output data-dimension-output="heelDepth" for="dimension-heel-depth">5.2</output></label><input id="dimension-heel-depth" data-dimension="heelDepth" type="range" min="3.5" max="10" step="0.1" value="5.2"></div>
+            <div class="dimension-control"><label for="dimension-ankle-circumference">踝围<output data-dimension-output="ankleCircumference" for="dimension-ankle-circumference">20.5</output></label><input id="dimension-ankle-circumference" data-dimension="ankleCircumference" type="range" min="15" max="34" step="0.1" value="20.5"></div>
+            <div class="dimension-control"><label for="dimension-calf-circumference">小腿围<output data-dimension-output="calfCircumference" for="dimension-calf-circumference">34.0</output></label><input id="dimension-calf-circumference" data-dimension="calfCircumference" type="range" min="22" max="58" step="0.1" value="34"></div>
+            <div class="dimension-control"><label for="dimension-thigh-circumference">大腿围<output data-dimension-output="thighCircumference" for="dimension-thigh-circumference">47.0</output></label><input id="dimension-thigh-circumference" data-dimension="thighCircumference" type="range" min="30" max="85" step="0.1" value="47"></div>
+            <div class="dimension-control"><label for="dimension-stocking-length">袜长<output data-dimension-output="stockingLength" for="dimension-stocking-length">78.0</output></label><input id="dimension-stocking-length" data-dimension="stockingLength" type="range" min="45" max="110" step="0.1" value="78"></div>
+            <div class="dimension-control"><label for="dimension-cuff-height">袜口高度<output data-dimension-output="cuffHeight" for="dimension-cuff-height">4.5</output></label><input id="dimension-cuff-height" data-dimension="cuffHeight" type="range" min="1.5" max="12" step="0.1" value="4.5"></div>
+          </div>
+          <p class="control-note dimension-note">修改自然尺寸会重新贴合；人台尺寸独立，尚未做人体测量标定。</p>
+        </details>
+        <section id="stocking-controls" class="inspector-section">
+          <div class="section-heading"><h2>试穿姿态</h2><span class="section-number">POSE</span></div>
+          <div class="range-control"><label for="pose">弯膝角度 <output id="pose-value" for="pose">0°</output></label><input id="pose" type="range" min="0" max="55" step="1" value="0"><div class="range-ends"><span>站立</span><span>55°</span></div></div>
+          <button id="fit-button" class="outline-button refit-button">重新贴合人台</button>
+        </section>
+        <details id="local-material-controls" class="panel-group">
+          <summary><span>局部材料编辑</span><span class="summary-detail">相对刚度 <i></i></span></summary>
+          <section class="panel-content material-section">
+            <div class="range-control"><label for="material-weft">横向拉伸 <output id="weft-value" for="material-weft">1.0</output></label><input id="material-weft" type="range" min="0.2" max="3" step="0.1" value="1"><div class="range-ends"><span>柔软</span><span>刚硬</span></div></div>
+            <div class="range-control"><label for="material-warp">纵向拉伸 <output id="warp-value" for="material-warp">1.0</output></label><input id="material-warp" type="range" min="0.2" max="3" step="0.1" value="1"><div class="range-ends"><span>柔软</span><span>刚硬</span></div></div>
+            <div class="range-control"><label for="material-shear">剪切 <output id="shear-value" for="material-shear">1.0</output></label><input id="material-shear" type="range" min="0.2" max="3" step="0.1" value="1"></div>
+            <div class="range-control brush-control"><label for="brush-size">编辑半径 <output id="brush-value" for="brush-size">0.07</output></label><input id="brush-size" type="range" min="0.02" max="0.2" step="0.01" value="0.07"></div>
+            <p class="control-note">选择组织区后点击“应用到所选组织区”；倍率与材料曲线共同进入计算。</p>
+          </section>
+        </details>
+        <details id="solver-controls" class="panel-group">
+          <summary><span>物理与碰撞</span><span class="summary-detail">求解设置 <i></i></span></summary>
+          <div class="panel-content">
+            <label class="toggle-row" for="gravity"><span>重力</span><input id="gravity" type="checkbox" checked></label>
+            <label class="toggle-row" for="collider"><span>人台接触</span><input id="collider" type="checkbox" checked></label>
+            <label class="toggle-row" for="self-collision"><span>织物自碰撞</span><input id="self-collision" type="checkbox" checked></label>
+            <label class="toggle-row" for="continuous-collision"><span>限定连续碰撞</span><input id="continuous-collision" type="checkbox" checked></label>
+            <label class="select-label quality-label" for="solver-backend">计算方式</label>
+            <select id="solver-backend"><option value="browser" selected>浏览器交互 · 实验</option><option value="native" disabled>本地 IPC · 检查中</option></select>
+            <p id="reference-status" class="control-note">交互接触尚有穿透反例，不能作为实物依据。</p>
+            <button id="prepare-reference" class="outline-button" hidden>以 6 mm 数值余量重新贴合</button>
+            <label class="select-label quality-label" for="quality">求解质量</label>
+            <select id="quality"><option value="fast">快速交互</option><option value="standard" selected>标准</option><option value="reference">精细交互</option></select>
+            <p class="control-note">连续检测覆盖运动顶点与静止三角形；不包含运动三角形及边与边的连续检测。接触与初始贴合间隙是数值余量，尚未按丝袜厚度标定。</p>
+            <div class="paired-buttons"><button id="stretch-button" class="outline-button">拉伸试验</button><button id="release-button" class="quiet-outline-button">释放</button></div>
+          </div>
+        </details>
+        <details id="diagnostic-controls" class="panel-group">
+          <summary><span>求解读数</span><span class="summary-detail">实时 <i></i></span></summary>
+          <section class="panel-content diagnostics-section">
+            <dl class="diagnostic-grid"><div><dt>顶点</dt><dd id="stat-vertices">--</dd></div><div><dt>面片</dt><dd id="stat-faces">--</dd></div><div><dt>最大边应变</dt><dd id="stat-strain">--</dd></div><div><dt>缝合约束</dt><dd id="stat-seams">--</dd></div><div><dt>作品版本</dt><dd id="stat-topology">--</dd></div><div><dt>求解耗时</dt><dd id="stat-frame">--</dd></div></dl>
+            <div class="chart-heading"><span>约束反力估计</span><output id="stat-force">--</output></div>
+            <canvas id="force-chart" width="300" height="100" aria-label="拉伸试验的约束反力估计曲线" role="img"></canvas>
+            <div class="chart-caption"><span>时间 →</span><span>牛顿 N</span></div>
+          </section>
+        </details>
+        <details id="material-data-controls" class="panel-group">
+          <summary><span>材料数据</span><span class="summary-detail">CSV <i></i></span></summary>
+          <div class="panel-content">
+            <label class="select-label" for="material-source-type">导入文件的真实来源</label>
+            <select id="material-source-type"><option value="synthetic">合成／测试数据</option><option value="measured">实测数据</option></select>
+            <div class="data-actions"><button id="material-import" class="outline-button">导入 CSV</button><button id="material-template" class="quiet-outline-button">合成示例</button></div>
+            <input id="material-file" type="file" accept=".csv,text/csv" hidden>
+            <div class="state-row"><span>力学曲线</span><output id="material-state" class="state-value">未导入</output></div>
+            <div class="state-row"><span>透光数据</span><output id="optical-state" class="state-value">未导入</output></div>
+            <canvas id="material-curve" class="material-curve" width="300" height="100" role="img" aria-label="已导入的方向拉伸曲线"></canvas>
+            <div class="data-chart-caption"><span>应变 →</span><span>张力 N/m</span></div>
+            <p class="control-note">实测来源、曲线拟合与留出验证分别记录。合成示例始终标记为合成，不升级为实测。</p>
+          </div>
+        </details>
+        <details id="manufacturing-controls" class="panel-group">
+          <summary><span>设备与工艺</span><span class="summary-detail">待验证 <i></i></span></summary>
+          <div class="panel-content">
+            <div class="data-actions"><button id="machine-import" class="outline-button">导入设备 JSON</button><button id="machine-demo" class="quiet-outline-button">假设设备</button></div>
+            <input id="machine-file" type="file" accept=".json,application/json" hidden>
+            <p id="manufacturing-status" class="manufacturing-status">尚未指定真实设备</p>
+            <dl class="manufacturing-states"><div><dt>结构</dt><dd id="structure-state">未检查</dd></div><div><dt>设备</dt><dd id="device-state">未检查</dd></div><div><dt>实样</dt><dd id="sample-state">未验证</dd></div></dl>
+            <div class="data-actions"><button id="manufacturing-check" class="outline-button">检查工艺约束</button><button id="manufacturing-export" class="quiet-outline-button">导出技术包</button></div>
+            <ol id="manufacturing-issues" class="manufacturing-issues"><li>导入设备能力后可检查针位、喂纱、颜色、动作与组织边界。</li></ol>
+            <p class="control-note">假设设备只能测试规则。技术包用于工艺评审，尚不包含设备原生生产程序。</p>
+          </div>
+        </details>
+        <details id="history-controls" class="panel-group">
+          <summary><span>编辑记录</span><span class="summary-detail"><i></i></span></summary>
+          <div class="panel-content"><ol id="history-list" class="history-list"><li class="history-empty">尚未编辑</li></ol></div>
+        </details>
+        <details id="model-info" class="model-info"><summary>模型说明与验证状态<span aria-hidden="true">＋</span></summary><div><p>可选浏览器 CPU XPBD 与本地 IPC 实验求解器。c744 版本的指定完整 0→55° 参考案例已通过，结果限于该案例；浏览器 XPBD 仍有穿透与失稳反例。足部、足跟、袜筒和袜口属于同一模型；自然尺寸与人台尺寸分别保存。</p><p>已支持有限厚度的顶点与三角形自接触，以及运动顶点对静止三角形的连续检测。浏览器模式尚未覆盖运动三角形与边对边连续碰撞；本地 IPC 的原生接触检查已在上述指定参考案例中验证。</p><p>开缝沿网格边近似路径、分离边界并保留材料；缝线连接两段边界。线圈组织通过等效约束参与计算，尚不计算真实纱线接触与摩擦。</p><p>自由袜尖封口使用面积变化的各向同性外观假设。数值伸长上限与路径拦截不代表材料强度，反力估计不包含这些硬限制及接触反力。材料与外观在没有实测数据时使用实验假设；曲线留出验证不代表整件服装已校准。真实材料、完整穿入过程与工业生产尚未验证。</p></div></details>
+      </aside>
+    </div>
+
+    <div class="experiment-footer" role="status" aria-live="polite"><span class="status-dot"></span><span id="status-text">初始化中</span><span id="hint-text" class="interaction-hint">拖动抓取 · 右键或 Alt 拖动旋转 · 滚轮缩放</span></div>
+    <details class="keyboard-help"><summary>操作说明 <span>?</span></summary><div class="help-grid"><p><strong>抓取</strong>拖动织物上的一点，松开后观察回弹。</p><p><strong>改版</strong>拖动改变局部自然尺寸，松手后保留结构变化。</p><p><strong>固定</strong>点击添加或取消固定点。</p><p><strong>开缝</strong>沿网格边近似切线并分离边界，保留原有材料。</p><p><strong>缝合</strong>依次拖选两段边界，或点击“缝合最近切口”。</p><p><strong>区域</strong>点选已有组织区或拖出新区；进入细节后点击针目。</p><p><strong>线圈</strong>先选择丝袜组织区，再进入线圈细节视图编辑针目。</p><p><strong>视角</strong>右键或 Alt 拖动旋转，滚轮缩放。</p><p><strong>快捷键</strong>空格暂停，Ctrl / ⌘ Z 撤销，Shift Z 重做。</p></div></details>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
+const api=await import('./audit-native-checkpoint.mjs').catch(()=>({}));
+const baseline=JSON.parse(fs.readFileSync(new URL('../evidence/native-motion-static-accepted-state.json',import.meta.url),'utf8'));
+const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
+const fixture=()=>{const state=structuredClone(baseline);return {state,checkpoint:{phase:'static',acceptedPose:state.pose,steps:1,positionsHash:hash(state.design.model.positions)}};};
+test('accepted static checkpoint independently passes complete geometry and baseline anchors',()=>{assert.equal(typeof api.auditAcceptedCheckpoint,'function');const {state,checkpoint}=fixture(),r=api.auditAcceptedCheckpoint(state,checkpoint,baseline);assert.equal(r.passed,true);assert.equal(r.faceSamples,r.faces*7);assert.equal(r.penetratingFaceSamples,0);assert.equal(r.intersections.pairCount,0);assert.equal(r.bodyToeCoverage.covered,true);assert.equal(r.clearanceToeCoverage.covered,true);assert.equal(r.anchorDisplacementM,0);});
+test('a mismatched positions hash cannot be audited under another checkpoint identity',()=>{assert.equal(typeof api.auditAcceptedCheckpoint,'function');const {state,checkpoint}=fixture();state.design.model.positions[0]+=.001;assert.throws(()=>api.auditAcceptedCheckpoint(state,checkpoint,baseline),/identity|hash|匹配/i);});
+test('moving a pin and its saved target together still fails the immutable baseline check',()=>{assert.equal(typeof api.auditAcceptedCheckpoint,'function');const {state,checkpoint}=fixture(),m=state.design.model,i=m.pins[0];m.positions[i*3]+=.001;m.pinTargets.find(([index])=>index===i)[1][0]+=.001;checkpoint.positionsHash=hash(m.positions);const r=api.auditAcceptedCheckpoint(state,checkpoint,baseline);assert.equal(r.passed,false);assert.equal(r.currentAnchorTargetErrorM,0);assert.ok(r.anchorDisplacementM>.00099);assert.equal(r.pinTargetsStable,false);});

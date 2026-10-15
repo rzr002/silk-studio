@@ -1,0 +1,22 @@
+# sourceType: synthetic
+# sampleId: SYNTHETIC-NOT-MEASURED-001
+# description: 手工构造的软件测试数据，不代表任何真实纱线、工厂或实验结果。strain 为比例，力为 N，长度为 m，transmittance 为 0-1。
+direction,strain,forceN,widthM,gaugeM,cycle,transmittance,split
+warp,0,0,0.05,0.10,1,0.44,fit
+warp,0.10,0.40,0.05,0.10,1,0.48,fit
+warp,0.20,0.95,0.05,0.10,1,0.53,fit
+warp,0.35,1.80,0.05,0.10,1,0.60,fit
+warp,0.50,3.60,0.05,0.10,1,0.67,fit
+warp,0.15,0.675,0.05,0.10,1,0.505,holdout
+weft,0,0,0.05,0.10,1,0.44,fit
+weft,0.10,0.25,0.05,0.10,1,0.49,fit
+weft,0.20,0.65,0.05,0.10,1,0.55,fit
+weft,0.35,1.30,0.05,0.10,1,0.62,fit
+weft,0.50,2.40,0.05,0.10,1,0.70,fit
+weft,0.15,0.45,0.05,0.10,1,0.52,holdout
+shear,0,0,0.05,0.10,1,,fit
+shear,0.10,0.04,0.05,0.10,1,,fit
+shear,0.20,0.12,0.05,0.10,1,,fit
+shear,0.35,0.30,0.05,0.10,1,,fit
+shear,0.50,0.60,0.05,0.10,1,,fit
+shear,0.15,0.08,0.05,0.10,1,,holdout

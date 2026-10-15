@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#e9e4da">
+<meta name="description" content="从一卷纱线开始，亲手试织、编织、封尖和整理自己的丝袜。">
+<title>SILK · 制袜工坊</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%233a4239'/%3E%3Cpath d='M17 20c0-10 30-10 30 0S17 32 17 43s30 10 30 0' fill='none' stroke='%23ece5d7' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./workshop.css">
+</head>
+<body>
+<header class="masthead">
+  <a class="wordmark" href="./">SILK <span>制袜工坊</span></a>
+  <span class="edition">工坊实验 <b>0.5</b></span>
+  <div class="file-tools">
+    <button id="save" title="保存制作进度"><span class="save-glyph">▧</span><span>保存</span></button>
+    <button id="load" title="打开制作记录"><span>打开</span></button>
+    <input id="load-file" type="file" accept=".json,application/json" hidden>
+    <button id="export" class="border-button">导出进度</button>
+  </div>
+</header>
+<main class="atelier">
+  <nav class="station-rail" aria-label="工坊工序">
+    <div class="rail-label" aria-hidden="true">制作工序<span>WORKFLOW</span></div>
+    <button data-station="yarn" aria-current="step"><span class="station-number">01</span><svg viewBox="0 0 32 32"><path d="M8 7h16M8 25h16M11 7v18m10-18v18M11 10l10 4-10 4 10 4"/></svg><span>选纱穿线</span><i></i></button>
+    <button data-station="sample"><span class="station-number">02</span><svg viewBox="0 0 32 32"><path d="M7 6v20m6-20v20m6-20v20m6-20v20M6 12h20M6 20h20"/></svg><span>试织小样</span><i></i></button>
+    <button data-station="knit"><span class="station-number">03</span><svg viewBox="0 0 32 32"><ellipse cx="16" cy="10" rx="10" ry="4"/><path d="M6 10v11c0 6 20 6 20 0V10m-15 5v7m10-7v7"/></svg><span>编织成形</span><i></i></button>
+    <button data-station="seam"><span class="station-number">04</span><svg viewBox="0 0 32 32"><path d="m6 26 17-21c4-3 7 0 3 4L6 26Zm17-17 3-4M16 24c12 6 13-8 6-9"/></svg><span>对齐封尖</span><i></i></button>
+    <button data-station="finish"><span class="station-number">05</span><svg viewBox="0 0 32 32"><path d="M5 13h22l-3 14H8L5 13Zm3 6c5-5 11 5 16 0M12 9c-4-3 4-3 0-7m8 7c-4-3 4-3 0-7"/></svg><span>染整定型</span><i></i></button>
+    <button data-station="wear"><span class="station-number">06</span><svg viewBox="0 0 32 32"><path d="M12 3h10l-2 14-4 7-9 3c-3 0-3-4 0-5l5-3V3Z"/></svg><span>试穿验货</span><i></i></button>
+    <div class="rail-bottom"><span class="rail-plate" aria-hidden="true">SILK / WS</span><a href="./lab.html" title="高级结构与材料实验；完成的作品可以从试穿工位送入">专业台 ↗</a></div>
+  </nav>
+  <section class="workroom" aria-label="可以操作的三维制袜作坊">
+    <div class="room-caption"><span class="room-dot"></span><span id="room-title">选纱台</span><span id="piece-stage">尚未织出袜布</span></div>
+    <div id="workshop-viewport" tabindex="0" role="region" aria-label="三维制袜工坊。拖动纱筒上机，点击导纱器，拖动手轮试织；右键拖动旋转，滚轮缩放。"><div id="workshop-loading"><span></span>正在打开工坊…</div></div>
+    <div class="view-tools"><button id="motion-toggle" aria-pressed="true" title="开启或减少工位的动态效果">动态效果</button><button id="reset-view" title="回到当前工位视角">回到工位</button><button id="photo" title="保存当前画面 PNG">拍照</button></div>
+    <div class="task-card" aria-live="polite"><span class="task-icon" aria-hidden="true">↗</span><div><span class="task-kicker">下一步 · 亲手操作</span><strong id="task-title">拿起一卷纱线</strong><p id="task-description">从左边的纱架选一卷，放到机器的纱筒座上。</p></div></div>
+    <div class="room-footer"><span id="room-hint">拖动操作 · 右键旋转 · 滚轮缩放</span><span id="production-readout">一卷纱线 / 一只丝袜</span></div>
+  </section>
+  <aside class="workbench" aria-label="工位工具柜与制作日志">
+    <div class="bench-heading"><div class="bench-plate"><span class="eyebrow">工位工具柜</span><span class="plate-code" aria-hidden="true">WS / 01–06</span></div><h1 id="bench-title">选纱与穿线</h1><p id="bench-description">先摸清材料，再把线送到针床。</p></div>
+    <section id="process-monitor" class="process-monitor" aria-label="工位动态">
+      <span class="status-signal" aria-hidden="true"></span><div class="activity-copy"><strong id="activity-label" aria-live="polite">工位已就绪</strong><span id="activity-detail">拿起纱线，开始这次制作。</span></div><span class="monitor-label">动作演示</span>
+      <progress id="activity-meter" max="1" value="0" aria-label="当前动作演示进度"></progress>
+    </section>
+    <div id="locked-note" class="locked-note" hidden></div>
+    <section data-panel="yarn" class="stage-panel">
+      <div class="drawer-title"><span>纱线抽屉</span><small>01 / 材料与纱路</small></div>
+      <div class="material-note"><span>演示纱线</span><small>未经实样校准</small></div>
+      <div id="yarn-shelf" class="yarn-shelf" aria-label="可用纱线"></div>
+      <button id="mount-yarn" class="action-button">把纱筒放上机器</button>
+      <div class="tool-heading"><h2>引纱路径</h2><span id="thread-count">0 / 3</span></div>
+      <ol class="thread-route"><li><button id="thread-guide-1" data-guide="guide-1"><i>1</i><span>穿过导纱眼</span><b>○</b></button></li><li><button id="thread-tensioner" data-guide="tensioner"><i>2</i><span>绕过张力器</span><b>○</b></button></li><li><button id="thread-feeder" data-guide="feeder"><i>3</i><span>送入喂纱嘴</span><b>○</b></button></li></ol>
+      <button id="unthread" class="text-button">退回纱线，重新穿</button>
+    </section>
+    <section data-panel="sample" class="stage-panel" hidden>
+      <div class="drawer-title"><span>试样夹</span><small>02 / 留样与比较</small></div>
+      <div class="tool-heading"><h2>慢转手轮</h2><output id="sample-count">0 / 8</output></div>
+      <p class="help">在场景里绕着手轮拖动，观察线圈连起来。当前纱线响应为演示估算，尚未实样校准。</p>
+      <button id="sample-knit" class="action-button">转动手轮，试织一段</button>
+      <label class="range-label" for="loop-length">线圈长度 <output id="loop-length-value">3.0 mm</output></label><input id="loop-length" type="range" min="2" max="4.5" step=".1" value="3">
+      <div class="range-ends"><span>紧密</span><span>松一些</span></div>
+      <label class="range-label" for="sample-extension">试拉小样 <output id="sample-extension-value">35%</output></label><input id="sample-extension" type="range" min="10" max="70" step="5" value="35">
+      <button id="sample-pull" class="border-button full-width">拉到标线，看看回弹</button>
+      <div id="sample-result" class="observation">织出小样后，亲手拉一拉。</div>
+      <button id="accept-sample" class="action-button">用这次试样继续制作</button>
+      <div class="tool-heading"><h2>桌上的小样</h2><span id="trial-count">0 件</span></div><div id="trial-tray" class="trial-tray"></div>
+    </section>
+    <section data-panel="knit" class="stage-panel" hidden>
+      <div class="drawer-title"><span>编织操作台</span><small>03 / 尺寸与组织</small></div>
+      <div class="measure-block">
+      <div class="tool-heading"><h2>自然尺寸</h2><span>cm</span></div>
+      <label class="range-label" for="stocking-length">袜长 <output id="stocking-length-value">78</output></label><input id="stocking-length" data-dimension="stockingLength" type="range" min="55" max="88" step="1" value="78">
+      <label class="range-label" for="calf-circumference">小腿围 <output id="calf-circumference-value">34</output></label><input id="calf-circumference" data-dimension="calfCircumference" type="range" min="26" max="42" step="1" value="34">
+      <label class="range-label" for="foot-length">足长 <output id="foot-length-value">24</output></label><input id="foot-length" data-dimension="footLength" type="range" min="20" max="29" step=".5" value="24">
+      </div>
+      <div class="pattern-board">
+      <div class="tool-heading"><h2>针目草图</h2><button id="open-pattern" class="text-button">展开编辑 ↗</button></div>
+      <div class="stitch-tools" role="group" aria-label="画笔针法"><button data-stitch="knit" aria-pressed="true">成圈</button><button data-stitch="tuck">集圈</button><button data-stitch="miss">浮线</button></div>
+      <canvas id="pattern-preview" width="400" height="240" aria-label="针织程序。点击展开逐针编辑。"></canvas>
+      <p class="help" id="pattern-note">从袜口向袜尖织。已织部分会留下，修改它需要先拆回。</p>
+      </div>
+      <div class="production-meter"><span id="knit-count">0 / 48 段</span><progress id="knit-progress" max="48" value="0"></progress></div>
+      <div class="button-pair"><button id="start-knit" class="action-button">启动圆机</button><button id="pause-knit" class="border-button">暂停检查</button></div>
+      <details class="repair-tools"><summary>拆织与修改</summary><label for="unravel-course">拆回第几段</label><div class="inline-input"><input id="unravel-course" type="number" min="0" max="48" value="0"><button id="unravel" class="border-button">拆回纱线</button></div><p class="help">拆回后重新编织，之后的封尖与整理也需重做。</p></details>
+    </section>
+    <section data-panel="seam" class="stage-panel" hidden>
+      <div class="drawer-title"><span>封尖夹具</span><small>04 / 对位与送缝</small></div>
+      <div class="tool-heading"><h2>对齐袜尖</h2><span id="toe-alignment">两侧对齐</span></div>
+      <p class="help">拖动夹具里的两侧袜边，沿同一条标线送入缝口。</p>
+      <label class="range-label" for="toe-offset">边缘错位 <output id="toe-offset-value">0</output></label><input id="toe-offset" type="range" min="-1" max="1" step=".05" value="0">
+      <div class="seam-preview" aria-hidden="true"><span></span><span id="seam-preview-edge"></span><i id="seam-preview-stitch"></i></div>
+      <div class="gauge-caption" aria-hidden="true"><span>左边缘</span><span>对位参考</span><span>右边缘</span></div>
+      <button id="sew" class="action-button">踩下踏板，送缝一段</button>
+      <progress id="seam-progress" max="1" value="0"></progress>
+      <div id="seam-result" class="observation">缝线会沿着你对齐的位置生成。</div>
+      <button id="unpick" class="text-button">拆掉这条缝线，重新对齐</button>
+    </section>
+    <section data-panel="finish" class="stage-panel" hidden>
+      <div class="drawer-title"><span>后整工具</span><small>05 / 染整与套模</small></div>
+      <div class="tool-heading"><h2>染整</h2><span id="dye-state">尚未染整</span></div>
+      <label class="color-label" for="dye-color">目标色样 <input id="dye-color" type="color" value="#594844"></label>
+      <button id="dye" class="action-button">放入染槽，处理一段</button><progress id="dye-progress" max="1" value="0"></progress>
+      <div class="tool-heading"><h2>套模与整理</h2><span id="board-state">等待套模</span></div>
+      <button id="board" class="border-button full-width">把丝袜套上定型板</button>
+      <div class="smooth-tools"><button id="smooth-cuff" data-smooth="cuff">拉平袜口</button><button id="smooth-leg" data-smooth="leg">理顺袜身</button><button id="smooth-foot" data-smooth="foot">对齐足部</button></div>
+      <button id="heat" class="action-button">启动蒸汽定型</button><progress id="heat-progress" max="1" value="0"></progress>
+      <p class="help">染整时间已加速。用配套的实验工艺，先套正、拉平，再处理。</p>
+    </section>
+    <section data-panel="wear" class="stage-panel" hidden>
+      <div class="drawer-title"><span>成品卡</span><small>06 / 试穿与检查</small></div>
+      <div class="tool-heading"><h2>自己的第一只丝袜</h2><span id="wear-state">等待试穿</span></div>
+      <button id="dress" class="action-button">套上腿模，整理位置</button>
+      <label class="range-label" for="pose">动作预览 <output id="pose-value">0°</output></label><input id="pose" type="range" min="0" max="55" step="1" value="0">
+      <button id="inspect" class="border-button full-width">查看制作结果</button>
+      <div id="inspection-result" class="inspection-result"></div>
+      <label class="range-label" for="piece-name">给作品起个名字</label><input id="piece-name" type="text" maxlength="60" value="我的第一只丝袜">
+      <button id="send-to-lab" class="action-button">送到专业台进一步检查 ↗</button>
+      <button id="repair" class="text-button">回到编织工位修改</button>
+      <p class="help">这里展示贴合后的形状。完整穿入、真实材料与机器生产仍需单独验证。</p>
+    </section>
+    <details class="making-record" open><summary><span class="log-title">工作日志 <small>最近动作</small></span><span id="event-count">0 步</span></summary><ol id="event-list"></ol><p class="help">实验纱线与演示机台；保留全过程，尚未经过实样验证。</p></details>
+    <div class="bench-bottom"><button id="new-piece" class="text-button">另做一只</button><span id="save-state">尚未保存</span></div>
+  </aside>
+</main>
+<dialog id="pattern-dialog"><div class="dialog-heading"><div><span class="eyebrow">针目草图</span><h2>把想法织进袜子</h2></div><button id="close-pattern" aria-label="关闭针目编辑">×</button></div><p>上方是袜口，下方是袜尖；每列沿袜身一圈。选择针法，再拖动画出组织。</p><div class="stitch-tools dialog-stitches"><button data-stitch="knit" aria-pressed="true">成圈</button><button data-stitch="tuck">集圈</button><button data-stitch="miss">浮线</button></div><canvas id="pattern-editor" width="640" height="768" tabindex="0" role="img" aria-label="40列48段针织草图，拖动涂改尚未织出的针目"></canvas><p id="pattern-feedback" class="help">灰色区域已经织出，需要先拆回才能修改。</p></dialog>
+<div id="workshop-toast" role="status" aria-live="polite"></div>
+<script type="module" src="./workshop-app.mjs"></script>
+</body></html>

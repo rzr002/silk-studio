@@ -1,0 +1,30 @@
+{
+  "schema": "silk-machine-profile",
+  "version": 1,
+  "id": "HYPOTHETICAL-CIRCULAR-144",
+  "name": "假设圆机 · 144 针",
+  "machineType": "circular",
+  "provenance": {
+    "status": "hypothetical",
+    "source": "软件规则演示用的假设参数，不对应任何真实设备或厂商规格。"
+  },
+  "capabilities": {
+    "needleCount": 144,
+    "feeders": 4,
+    "maxColorsPerCourse": 2,
+    "supportedStitches": ["knit", "tuck", "miss"],
+    "supportedActions": ["knit", "tuck", "miss", "cast-on", "bind-off"],
+    "maxFloatNeedles": 4,
+    "supportsTransfers": false
+  },
+  "organizationRules": {
+    "requiresCastOn": true,
+    "requiresBindOff": true,
+    "allowExperimentalEyelet": false
+  },
+  "postProcessing": [
+    "由真实设备工艺人员核对针位、喂纱和边界工序",
+    "生产样片并复核尺寸、组织完整性和力学结果",
+    "根据实际材料确认染整与定型条件"
+  ]
+}

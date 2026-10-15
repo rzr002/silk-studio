@@ -1,0 +1,9 @@
+import {LAB_URL} from './lab-url.mjs';
+import assert from 'node:assert/strict';
+import {loadPlaywright} from './playwright.mjs';
+import {readFile,writeFile} from 'node:fs/promises';
+const p=loadPlaywright();
+const browser=await p.chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:1000},acceptDownloads:true});const checks=[];
+try{
+ await page.goto(LAB_URL);await page.waitForFunction(()=>window.workbench?.inspect);if(await page.evaluate(()=>workbench.inspect().playing))await page.locator('#play-button').click();await page.locator('[data-tool=orbit]').click();const a=await page.evaluate(()=>workbench.projectUV(.25,.4)),box=await page.locator('#viewport').boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+100,box.y+box.height/2+40,{steps:6});await page.mouse.up();const b=await page.evaluate(()=>workbench.projectUV(.25,.4));assert.ok(Math.hypot(a.x-b.x,a.y-b.y)>5);checks.push('orbit pointer changes actual camera projection');await page.mouse.wheel(0,-180);const c=await page.evaluate(()=>workbench.projectUV(.25,.4));assert.ok(Math.hypot(c.x-b.x,c.y-b.y)>3);checks.push('wheel changes actual camera distance');const event=page.waitForEvent('download');await page.locator('#snapshot-button').click();const download=await event;await download.saveAs('evidence/exported-view.png');assert.deepEqual([...((await readFile('evidence/exported-view.png')).subarray(0,8))],[137,80,78,71,13,10,26,10]);checks.push('PNG action downloads rendered canvas');await page.screenshot({path:'evidence/material-final.png',fullPage:true});await writeFile('evidence/view-report.json',JSON.stringify({date:new Date().toISOString(),checks},null,2));checks.forEach(x=>console.log('PASS',x));
+}finally{await browser.close();}

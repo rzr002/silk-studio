@@ -1,0 +1,23 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+const api=await import('../dist/material-data.mjs').catch(()=>({}));
+const csv=`direction,strain,forceN,widthM,gaugeM,cycle,transmittance,split
+warp,0,0,.05,.1,1,.20,fit
+warp,.1,1,.05,.1,1,.24,fit
+warp,.2,4,.05,.1,1,.30,fit
+warp,.15,2.5,.05,.1,1,.27,holdout
+weft,0,0,.05,.1,1,.20,fit
+weft,.1,.5,.05,.1,1,.23,fit
+weft,.2,2,.05,.1,1,.28,fit
+shear,0,0,.05,.1,1,,fit
+shear,.1,.2,.05,.1,1,,fit`;
+function parse(text=csv,options={}){assert.equal(typeof api.parseMaterialCSV,'function');return api.parseMaterialCSV(text,{sourceType:'measured',sampleId:'test-fixture-not-real-lab-data',...options});}
+test('CSV importer normalizes directions and records declared measurement provenance',()=>{const d=parse(csv.replaceAll('warp,','经向,'));assert.equal(d.records[0].direction,'warp');assert.equal(d.sourceType,'measured');assert.equal(d.records[1].tensionNPerM,20);assert.equal(d.units.force,'N');assert.equal(d.provenance.sampleId,'test-fixture-not-real-lab-data');});
+test('nonlinear directional law interpolates force per sample width and local tangent',()=>{const p=api.fitMaterial(parse());assert.equal(p.calibration.status,'validated');const r=api.evaluateMaterial(p,'warp',.15);assert.ok(Math.abs(r.tensionNPerM-50)<1e-9);assert.ok(Math.abs(r.tangentNPerM-600)<1e-9);assert.ok(Math.abs(api.evaluateMaterial(p,'weft',.15).tensionNPerM-25)<1e-9);assert.equal(api.evaluateMaterial(p,'warp',-.1).tensionNPerM,0);assert.ok(api.evaluateMaterial(p,'warp',.3).extrapolated);});
+test('fit-only data cannot claim validation and synthetic stays synthetic despite holdout',()=>{const a=api.fitMaterial(parse(csv.replaceAll('holdout','fit')));assert.equal(a.calibration.status,'fit');assert.equal(a.calibration.validation.status,'unverified');const b=api.fitMaterial(parse(csv,{sourceType:'synthetic'}));assert.equal(b.calibration.status,'synthetic');assert.equal(b.calibration.validation.status,'passed');assert.equal(b.provenance.sourceType,'synthetic');});
+test('independent holdout counterexample fails without leaking into fit curve',()=>{const p=api.fitMaterial(parse(csv.replace('warp,.15,2.5,','warp,.15,25,')));assert.equal(p.calibration.status,'fit');assert.equal(p.calibration.validation.status,'failed');assert.ok(Math.abs(api.evaluateMaterial(p,'warp',.15).tensionNPerM-50)<1e-9);});
+test('optional cycles remain distinct and optical measurements retain direction and source',()=>{const c=csv+'\nwarp,0,0,.05,.1,2,.2,fit\nwarp,.2,2,.05,.1,2,.29,fit';const p=api.fitMaterial(parse(c));assert.equal(api.evaluateMaterial(p,'warp',.2,{cycle:'2'}).tensionNPerM,40);assert.ok(p.optics.points.some(x=>x.direction==='warp'&&x.strain===.2&&x.transmittance===.3));assert.equal(p.optics.sourceType,'measured');assert.equal(api.evaluateMaterial(p,'unknown',.1),null);});
+test('CSV rejects absent source, wrong units, nonfinite dimensions and out-of-range optics',()=>{assert.throws(()=>api.parseMaterialCSV(csv,{}),/sourceType/);for(const text of [csv.replace('widthM','widthMM'),csv.replace('warp,.1,1,.05','warp,.1,1,NaN'),csv.replace('1,.24,fit','1,1.24,fit')])assert.throws(()=>parse(text));assert.throws(()=>parse(csv,{units:{force:'kg',length:'m',strain:'ratio'}}),/单位/);assert.throws(()=>parse('# sourceType: synthetic\n'+csv),/synthetic/);assert.throws(()=>api.fitMaterial(parse('direction,strain,forceN,widthM,gaugeM\nwarp,.1,1,.05,.1')),/至少/);});
+test('heldout measurements outside fitted range fail validation instead of self-confirming extrapolation',()=>{const p=api.fitMaterial(parse(csv.replace('warp,.15,2.5,','warp,.5,2.5,')));assert.equal(p.calibration.validation.status,'failed');assert.equal(p.calibration.validation.unavailable,1);assert.equal(p.calibration.status,'fit');});
+test('declared synthetic fixture and hypothetical profile are loadable without upgrading provenance',async()=>{const {readFile}=await import('node:fs/promises');const csv=await readFile(new URL('../dist/data/synthetic-material.csv',import.meta.url),'utf8');const p=api.fitMaterial(api.parseMaterialCSV(csv));assert.equal(p.sourceType,'synthetic');assert.equal(p.calibration.status,'synthetic');assert.ok(p.provenance.sampleId.includes('SYNTHETIC'));});
+test('a high-force direction cannot mask a failing low-force direction in heldout validation',()=>{const text=`direction,strain,forceN,widthM,gaugeM,split\nwarp,0,0,.05,.1,fit\nwarp,.2,100,.05,.1,fit\nwarp,.1,50,.05,.1,holdout\nweft,0,0,.05,.1,fit\nweft,.2,1,.05,.1,fit\nweft,.1,1,.05,.1,holdout`;const p=api.fitMaterial(parse(text));assert.equal(p.calibration.validation.status,'failed');assert.equal(p.calibration.validation.byDirection.weft.status,'failed');});

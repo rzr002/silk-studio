@@ -1,0 +1,37 @@
+{
+  "name": "silk-studio-demo",
+  "version": "0.5.1",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "test:browser": "node test/workshop.e2e.mjs",
+    "test:workshop-view": "node test/workshop-view.e2e.mjs",
+    "test:workshop-motion": "node test/workshop-motion.e2e.mjs",
+    "test:workshop-scene": "node test/workshop-scene.browser.mjs",
+    "test:workshop-navigation": "node test/workshop-navigation.e2e.mjs",
+    "test:workshop-portability": "node test/workshop-portability.e2e.mjs",
+    "test:lab": "node test/optimization.e2e.mjs",
+    "start": "python3 scripts/start.py",
+    "test:view": "node test/view.e2e.mjs",
+    "test:worker": "node test/simulation-worker.browser.mjs",
+    "test:motion": "node test/stocking.e2e.mjs",
+    "test:interaction": "node test/interaction.e2e.mjs",
+    "setup:reference": "python3 scripts/setup-reference.py",
+    "test:reference": ".venv-ipc/bin/python scripts/ipc-cloth.test.py",
+    "test:ipc": ".venv-ipc/bin/python scripts/ipc-probe.test.py",
+    "test:server": "python3 test/server.test.py",
+    "test:native-browser": "node test/native.e2e.mjs",
+    "test:native-motion": "node test/native-motion.e2e.mjs",
+    "test:idle-render": "node test/idle-render.e2e.mjs",
+    "test:manufacturing": "node test/manufacturing.e2e.mjs",
+    "test:native-checkpoint": "node test/native-checkpoint.e2e.mjs"
+  }
+}
